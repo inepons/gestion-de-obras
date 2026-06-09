@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de Obras</title>
+<style>
+:root{--bg:#f5f4f0;--card:#fff;--accent:#2c5f4a;--accent2:#4a8c6f;--nav-bg:#2c5f4a;--tint:#f5f4f0;--text:#1a1a1a;--muted:#6b7280;--border:#e5e5e0;--danger:#dc2626;--warn:#d97706;--success:#16a34a;--radius:10px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',sans-serif;color:var(--text);min-height:100vh;background:var(--tint);}
+
+/* LOGIN */
+#loginView{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--nav-bg);}
+.login-box{background:white;border-radius:16px;padding:40px 36px;width:90%;max-width:360px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.2);}
+.login-logo{font-size:2.4rem;margin-bottom:8px;}
+.login-box h1{font-size:1.2rem;font-weight:700;color:var(--accent);margin-bottom:4px;}
+.login-box p{font-size:0.82rem;color:var(--muted);margin-bottom:24px;}
+.login-box input{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 14px;font-size:0.95rem;margin-bottom:12px;outline:none;}
+.login-box input:focus{border-color:var(--accent);}
+.btn-login{width:100%;background:var(--accent);color:white;border:none;padding:11px;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;}
+.btn-login:hover{filter:brightness(1.1);}
+.login-error{color:var(--danger);font-size:0.83rem;margin-top:8px;display:none;}
+
+/* NAV */
+nav{background:var(--nav-bg);color:white;padding:0 20px;display:flex;align-items:stretch;min-height:52px;}
+.nav-left{display:flex;align-items:center;gap:10px;flex:1;}
+nav h1{font-size:1rem;font-weight:600;}
+.back-btn{background:rgba(255,255,255,0.15);border:none;color:white;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:0.82rem;}
+.back-btn:hover{background:rgba(255,255,255,0.25);}
+.user-pill{display:flex;align-items:center;gap:8px;padding:0 16px;font-size:0.82rem;font-weight:600;border-left:1px solid rgba(255,255,255,0.15);}
+.user-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.user-name{color:rgba(255,255,255,0.95);}
+.user-role{font-size:0.72rem;font-weight:400;color:rgba(255,255,255,0.65);}
+.nav-logout{background:rgba(255,255,255,0.12);border:none;color:white;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.78rem;margin-left:8px;align-self:center;}
+.nav-logout:hover{background:rgba(255,255,255,0.22);}
+.role-banner{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:0.85rem;font-weight:500;border-bottom:1px solid;}
+.role-banner .rb-text strong{display:block;font-size:0.9rem;}
+.role-banner .rb-text span{font-size:0.8rem;opacity:0.75;}
+
+/* MAIN */
+main{padding:20px;max-width:1100px;margin:0 auto;}
+.obras-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+.obras-header h2{font-size:1.25rem;font-weight:600;}
+.btn{background:var(--accent);color:white;border:none;padding:9px 18px;border-radius:var(--radius);cursor:pointer;font-size:0.88rem;font-weight:500;}
+.btn:hover{filter:brightness(1.1);}
+.btn-sm{padding:5px 12px;font-size:0.79rem;border-radius:6px;}
+.btn-outline{background:transparent;border:1.5px solid var(--accent);color:var(--accent);}
+.btn-outline:hover{background:var(--accent);color:white;}
+.btn-resumen{background:#1d4ed8;color:white;border:none;padding:9px 18px;border-radius:var(--radius);cursor:pointer;font-size:0.88rem;font-weight:500;}
+
+/* CARDS */
+.obras-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+.obra-card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:20px;cursor:pointer;transition:box-shadow 0.2s,transform 0.1s;}
+.obra-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.1);transform:translateY(-2px);}
+.obra-card h3{font-size:1rem;font-weight:600;margin-bottom:5px;}
+.obra-card .cliente{color:var(--muted);font-size:0.83rem;margin-bottom:10px;}
+.chips{display:flex;gap:7px;flex-wrap:wrap;}
+.chip{font-size:0.74rem;padding:3px 10px;border-radius:20px;font-weight:500;}
+.chip-green{background:#dcfce7;color:var(--success);}.chip-yellow{background:#fef3c7;color:var(--warn);}
+.chip-red{background:#fee2e2;color:var(--danger);}.chip-blue{background:#dbeafe;color:#1d4ed8;}
+.empty{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty .icon{font-size:3rem;margin-bottom:12px;}
+
+/* WHO BADGE */
+.who{display:inline-block;font-size:0.67rem;padding:1px 6px;border-radius:10px;font-weight:700;vertical-align:middle;margin-left:3px;}
+.who-adm{background:#dcfce7;color:#166534;}.who-tec{background:#dbeafe;color:#1e40af;}.who-ope{background:#f3e8ff;color:#6d28d9;}
+
+/* SECTION CARD */
+.section-card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:18px;margin-bottom:18px;}
+.section-card h3{font-size:.95rem;font-weight:600;margin-bottom:16px;color:var(--accent);border-bottom:1px solid var(--border);padding-bottom:8px;}
+.section-card h4{font-size:0.8rem;font-weight:700;color:var(--muted);margin:14px 0 6px;text-transform:uppercase;letter-spacing:0.05em;}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:10px;margin-bottom:16px;}
+.stat-box{background:var(--tint);border-radius:8px;padding:12px;}
+.stat-box .label{font-size:0.72rem;color:var(--muted);margin-bottom:3px;}
+.stat-box .value{font-size:1.05rem;font-weight:700;}
+.stat-box .value.green{color:var(--success);}.stat-box .value.red{color:var(--danger);}.stat-box .value.blue{color:#1d4ed8;}
+
+/* ENTRY ROW — la línea de carga */
+.entry-row{display:flex;align-items:center;gap:8px;background:var(--tint);border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;flex-wrap:wrap;}
+.entry-row input,.entry-row select{border:1.5px solid var(--border);border-radius:6px;padding:6px 9px;font-size:0.84rem;background:white;color:var(--text);outline:none;flex:1;min-width:80px;}
+.entry-row input:focus,.entry-row select:focus{border-color:var(--accent);}
+.entry-row .entry-label{font-size:0.74rem;color:var(--muted);font-weight:600;white-space:nowrap;}
+.entry-hint{font-size:0.71rem;color:var(--muted);padding:0 2px 8px;display:flex;align-items:center;gap:4px;}
+
+/* ITEM LIST */
+.item-list{border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:4px;}
+.item-row{display:flex;align-items:center;gap:0;background:white;border-bottom:1px solid var(--border);}
+.item-row:last-child{border-bottom:none;}
+.item-row:hover{background:#fafaf8;}
+.item-row.editing-row{background:#f0fdf4;border-left:3px solid var(--accent);}
+.item-cell{padding:9px 10px;font-size:0.83rem;}
+.item-cell.grow{flex:1;}
+.item-cell.num{font-weight:600;min-width:100px;text-align:right;}
+.item-cell.muted{color:var(--muted);font-size:0.76rem;}
+.item-cell.actions{display:flex;gap:5px;padding:6px 8px;align-items:center;}
+/* item type tag */
+.tag{font-size:0.68rem;padding:2px 6px;border-radius:8px;font-weight:700;white-space:nowrap;}
+.tag-base{background:#dbeafe;color:#1e40af;}
+.tag-adic{background:#fef3c7;color:var(--warn);}
+.tag-pago{background:#dcfce7;color:var(--success);}
+.tag-egreso{background:#fee2e2;color:var(--danger);}
+.tag-ingreso{background:#dcfce7;color:var(--success);}
+
+/* ACTION BTNS */
+.btn-edit{background:#f0fdf4;color:var(--accent);border:1.5px solid #bbf7d0;padding:3px 8px;border-radius:5px;font-size:0.75rem;cursor:pointer;font-weight:600;}
+.btn-edit:hover{background:var(--accent);color:white;}
+.btn-del{background:#fee2e2;color:var(--danger);border:1.5px solid #fecaca;padding:3px 8px;border-radius:5px;font-size:0.75rem;cursor:pointer;}
+.btn-del:hover{background:#fecaca;}
+.confirm-inline{display:flex;align-items:center;gap:5px;background:#fff3cd;border:1px solid #fde68a;border-radius:6px;padding:4px 8px;font-size:0.75rem;color:#92400e;white-space:nowrap;}
+.cbtn-yes{background:var(--danger);color:white;border:none;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:0.74rem;font-weight:600;}
+.cbtn-no{background:#e5e5e0;color:var(--text);border:none;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:0.74rem;}
+
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--card);border-radius:var(--radius);padding:5px;border:1px solid var(--border);flex-wrap:wrap;}
+.tab{padding:8px 15px;border-radius:7px;border:none;background:transparent;cursor:pointer;font-size:0.86rem;color:var(--muted);font-weight:500;transition:all 0.15s;}
+.tab.active{background:var(--accent);color:white;}
+.tab:hover:not(.active){background:var(--tint);color:var(--text);}
+.panel{display:none;}.panel.active{display:block;}
+
+/* MISC */
+.form-row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;}
+.form-group{display:flex;flex-direction:column;gap:4px;flex:1;min-width:100px;}
+.form-group label{font-size:0.76rem;color:var(--muted);font-weight:500;}
+.form-group input,.form-group select,.form-group textarea{border:1.5px solid var(--border);border-radius:7px;padding:7px 10px;font-size:0.86rem;background:white;color:var(--text);outline:none;width:100%;}
+.form-group input:focus,.form-group select:focus{border-color:var(--accent);}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.73rem;font-weight:500;}
+.badge-green{background:#dcfce7;color:var(--success);}.badge-yellow{background:#fef3c7;color:var(--warn);}.badge-red{background:#fee2e2;color:var(--danger);}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:white;border-radius:var(--radius);padding:26px;width:90%;max-width:460px;max-height:90vh;overflow-y:auto;}
+.modal h2{margin-bottom:18px;font-size:1.05rem;}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:22px;text-align:center;cursor:pointer;transition:border-color 0.2s;margin-bottom:10px;}
+.upload-zone:hover{border-color:var(--accent);}
+.upload-zone .icon{font-size:1.8rem;}
+.upload-zone p{color:var(--muted);font-size:0.83rem;margin-top:5px;}
+.processing{color:var(--accent);font-size:0.83rem;text-align:center;padding:8px;}
+.notes-section{background:#eff6ff;border:1px solid #bfdbfe;border-radius:var(--radius);padding:14px;margin-bottom:18px;}
+.notes-section h3{color:#1d4ed8;font-size:0.92rem;margin-bottom:10px;border-bottom:1px solid #bfdbfe;padding-bottom:7px;}
+.note-item{background:white;border-radius:7px;padding:10px;margin-bottom:7px;border:1px solid #dbeafe;}
+.note-item .note-meta{font-size:0.73rem;color:var(--muted);margin-bottom:4px;display:flex;align-items:center;gap:6px;}
+.note-item .note-text{font-size:0.86rem;margin-top:4px;}
+.resumen-panel{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:20px;margin-bottom:20px;}
+.resumen-panel h2{font-size:1rem;font-weight:700;color:#1d4ed8;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px;}
+.resumen-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px;}
+.resumen-box{background:var(--tint);border-radius:8px;padding:14px;text-align:center;}
+.resumen-box .rlabel{font-size:0.73rem;color:var(--muted);margin-bottom:3px;}
+.resumen-box .rvalue{font-size:1.05rem;font-weight:700;}
+.resumen-tbl{width:100%;border-collapse:collapse;font-size:0.82rem;}
+.resumen-tbl th{text-align:left;padding:7px 10px;border-bottom:2px solid var(--border);color:var(--muted);font-weight:600;font-size:0.74rem;text-transform:uppercase;}
+.resumen-tbl td{padding:8px 10px;border-bottom:1px solid var(--border);}
+.resumen-tbl .total-row td{font-weight:700;background:#f0fdf4;border-top:2px solid var(--border);}
+.pago-only{display:none;}
+</style>
+</head>
+<body>
+
+<div id="loginView">
+  <div class="login-box">
+    <div class="login-logo">🏗️</div>
+    <h1>Panel de Obras</h1>
+    <p>Ingresá tu contraseña para continuar</p>
+    <input type="password" id="loginPass" placeholder="Contraseña">
+    <button class="btn-login" onclick="doLogin()">Ingresar</button>
+    <div class="login-error" id="loginError">Contraseña incorrecta</div>
+  </div>
+</div>
+
+<div id="appView" style="display:none">
+  <nav>
+    <div class="nav-left">
+      <button class="back-btn" id="navBack" onclick="goHome()" style="display:none">← Volver</button>
+      <h1 id="navTitle">🏗️ Gestión de Obras</h1>
+    </div>
+    <div class="user-pill">
+      <div class="user-dot" id="userDot"></div>
+      <div><div class="user-name" id="userName"></div><div class="user-role" id="userRole"></div></div>
+    </div>
+    <button class="nav-logout" onclick="doLogout()">Salir</button>
+  </nav>
+  <div class="role-banner" id="roleBanner" style="display:none">
+    <span id="bannerIcon" style="font-size:1.2rem"></span>
+    <div class="rb-text"><strong id="bannerTitle"></strong><span id="bannerDesc"></span></div>
+  </div>
+
+  <main>
+    <!-- HOME -->
+    <div id="homeView">
+      <div class="obras-header">
+        <h2>Obras</h2>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn-resumen" id="btnResumen" onclick="toggleResumen()">📊 Resumen</button>
+          <button class="btn" id="btnNuevaObra" onclick="openModal('modalNuevaObra')">+ Nueva Obra</button>
+        </div>
+      </div>
+      <div id="resumenPanel" style="display:none"></div>
+      <div class="obras-grid" id="obrasGrid"></div>
+      <div class="empty" id="emptyObras"><div class="icon">🏗️</div><p>No hay obras todavía.</p></div>
+    </div>
+
+    <!-- DETAIL -->
+    <div id="detailView" style="display:none">
+      <div class="tabs">
+        <button class="tab active" onclick="showPanel('honorarios')">📐 Honorarios</button>
+        <button class="tab" onclick="showPanel('caja')">💰 Caja</button>
+        <button class="tab" onclick="showPanel('proveedores')">🧾 Proveedores</button>
+        <button class="tab" onclick="showPanel('contratistas')">👷 Contratistas</button>
+        <button class="tab" onclick="showPanel('notas')">📝 Notas</button>
+      </div>
+
+      <!-- HONORARIOS -->
+      <div class="panel active" id="panel-honorarios">
+        <div class="section-card">
+          <h3>Honorarios Profesionales</h3>
+          <div class="stats-row" id="statsHon"></div>
+          <!-- entrada presupuesto base -->
+          <div id="honBaseEntry"></div>
+          <h4 style="margin-top:14px">Adicionales / Ajustes</h4>
+          <div class="entry-row" id="honAdicEntry">
+            <span class="entry-label">Concepto</span>
+            <input type="text" id="honAdicDesc" placeholder="Descripción del adicional...">
+            <span class="entry-label">USD</span>
+            <input type="number" id="honAdicMonto" placeholder="0" style="max-width:110px">
+            <button class="btn btn-sm" onclick="addAdicHon()" style="background:var(--warn);white-space:nowrap">+ Agregar</button>
+          </div>
+          <div class="entry-hint">⏎ Enter para confirmar</div>
+          <div id="listaHonAdic"></div>
+
+          <div class="pago-only" id="secHonPagos">
+            <h4 style="margin-top:14px">Pagos Recibidos</h4>
+            <div class="entry-row">
+              <input type="date" id="honFecha" style="max-width:145px">
+              <input type="text" id="honPagoDesc" placeholder="Concepto del pago...">
+              <span class="entry-label">USD</span>
+              <input type="number" id="honPagoMonto" placeholder="0" style="max-width:110px">
+              <button class="btn btn-sm" onclick="addPagoHon()" style="white-space:nowrap">+ Agregar</button>
+            </div>
+            <div class="entry-hint">⏎ Enter para confirmar</div>
+          </div>
+          <div id="listaHonPagos"></div>
+        </div>
+
+        <div class="section-card">
+          <h3>Mano de Obra</h3>
+          <div class="stats-row" id="statsMO"></div>
+          <div id="moBaseEntry"></div>
+          <h4 style="margin-top:14px">Adicionales / Ajustes</h4>
+          <div class="entry-row">
+            <span class="entry-label">Concepto</span>
+            <input type="text" id="moAdicDesc" placeholder="Descripción del adicional...">
+            <input type="number" id="moAdicMonto" placeholder="0" style="max-width:110px">
+            <button class="btn btn-sm" onclick="addAdicMO()" style="background:var(--warn);white-space:nowrap">+ Agregar</button>
+          </div>
+          <div class="entry-hint">⏎ Enter para confirmar</div>
+          <div id="listaMOAdic"></div>
+
+          <div class="pago-only" id="secMOPagos">
+            <h4 style="margin-top:14px">Pagos Realizados</h4>
+            <div class="entry-row">
+              <input type="date" id="moFecha" style="max-width:145px">
+              <input type="text" id="moPagoDesc" placeholder="Concepto del pago...">
+              <input type="number" id="moPagoMonto" placeholder="0" style="max-width:110px">
+              <button class="btn btn-sm" onclick="addPagoMO()" style="white-space:nowrap">+ Agregar</button>
+            </div>
+            <div class="entry-hint">⏎ Enter para confirmar</div>
+          </div>
+          <div id="listaMOPagos"></div>
+        </div>
+      </div>
+
+      <!-- CAJA -->
+      <div class="panel" id="panel-caja">
+        <div class="section-card">
+          <h3>Caja de Obra</h3>
+          <div class="stats-row" id="statsCaja"></div>
+          <div class="pago-only">
+            <div class="entry-row">
+              <input type="date" id="cajaFecha" style="max-width:145px">
+              <select id="cajaTipo" style="max-width:160px"><option value="ingreso">Ingreso (cliente)</option><option value="egreso">Egreso</option></select>
+              <input type="text" id="cajaDesc" placeholder="Concepto...">
+              <input type="number" id="cajaMonto" placeholder="0" style="max-width:110px">
+              <button class="btn btn-sm" onclick="addMovCaja()" style="white-space:nowrap">+ Agregar</button>
+            </div>
+            <div class="entry-hint">⏎ Enter para confirmar</div>
+          </div>
+          <div id="listaCaja"></div>
+        </div>
+      </div>
+
+      <!-- PROVEEDORES -->
+      <div class="panel" id="panel-proveedores">
+        <div class="section-card pago-only">
+          <h3>Cargar Factura</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div class="upload-zone" onclick="document.getElementById('uploadFactura').click()">
+              <div class="icon">📸</div><p><strong>Con IA</strong> — Foto de factura</p>
+            </div>
+            <div class="upload-zone" style="border-style:solid;border-color:var(--accent)" onclick="toggleSection('manualFacturaForm')">
+              <div class="icon">✏️</div><p><strong>Manual</strong> — Sin foto</p>
+            </div>
+          </div>
+          <input type="file" id="uploadFactura" accept="image/*" style="display:none" onchange="procesarFactura(event)">
+          <div id="processingFactura" class="processing" style="display:none">⏳ Analizando con IA...</div>
+          <div id="manualFacturaForm" style="display:none">
+            <div class="entry-row" style="flex-wrap:wrap">
+              <input type="text" id="mfProveedor" placeholder="Proveedor">
+              <input type="date" id="mfFecha" style="max-width:145px">
+              <input type="number" id="mfMonto" placeholder="Monto" style="max-width:110px">
+            </div>
+            <div class="entry-row" style="margin-top:6px">
+              <input type="text" id="mfDetalle" placeholder="Detalle / ítems">
+              <input type="text" id="mfNumero" placeholder="N° Factura" style="max-width:150px">
+              <button class="btn btn-sm" onclick="addFacturaManual()" style="white-space:nowrap">✔ Guardar</button>
+            </div>
+            <div class="entry-hint">⏎ Enter para confirmar</div>
+          </div>
+        </div>
+        <div class="section-card">
+          <h3>Remitos / Stock</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div class="upload-zone" onclick="document.getElementById('uploadRemito').click()">
+              <div class="icon">📦</div><p><strong>Con IA</strong> — Foto de remito</p>
+            </div>
+            <div class="upload-zone" style="border-style:solid;border-color:var(--accent)" onclick="toggleSection('manualRemitoForm')">
+              <div class="icon">✏️</div><p><strong>Manual</strong></p>
+            </div>
+          </div>
+          <input type="file" id="uploadRemito" accept="image/*" style="display:none" onchange="procesarRemito(event)">
+          <div id="processingRemito" class="processing" style="display:none">⏳ Analizando remito...</div>
+          <div id="manualRemitoForm" style="display:none">
+            <div class="entry-row">
+              <input type="text" id="mrMaterial" placeholder="Material (ej: Ladrillos)">
+              <input type="number" id="mrCantidad" placeholder="Cantidad" style="max-width:100px">
+              <input type="text" id="mrUnidad" placeholder="u/m2/kg" style="max-width:80px">
+              <button class="btn btn-sm" onclick="addStockManual()" style="white-space:nowrap">✔ Agregar</button>
+            </div>
+            <div class="entry-hint">⏎ Enter para confirmar</div>
+          </div>
+          <h4 style="margin-top:6px">Stock Disponible</h4>
+          <div id="stockList"></div>
+        </div>
+        <div class="section-card pago-only">
+          <h3>Facturas de Proveedores</h3>
+          <div id="listaFacturas"></div>
+        </div>
+      </div>
+
+      <!-- CONTRATISTAS -->
+      <div class="panel" id="panel-contratistas">
+        <div class="section-card">
+          <h3>Contratistas</h3>
+          <button class="btn btn-sm" onclick="abrirNuevoContratista()">+ Nuevo Contratista</button>
+          <div id="contratistasList" style="margin-top:14px"></div>
+        </div>
+      </div>
+
+      <!-- NOTAS -->
+      <div class="panel" id="panel-notas">
+        <div class="notes-section">
+          <h3>📝 Notas de la Obra</h3>
+          <div class="entry-row" style="align-items:flex-start">
+            <textarea id="notaTexto" rows="2" placeholder="Escribí tu nota u observación..." style="flex:1;resize:vertical;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:0.84rem;background:white;outline:none;font-family:inherit"></textarea>
+            <button class="btn btn-sm" onclick="addNota()" style="align-self:flex-end;white-space:nowrap">+ Agregar</button>
+          </div>
+          <div class="entry-hint">Ctrl+Enter para confirmar</div>
+          <div id="notasList" style="margin-top:10px"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODALES -->
+<div class="modal-overlay" id="modalNuevaObra">
+  <div class="modal"><h2>Nueva Obra</h2>
+    <div class="form-group" style="margin-bottom:10px"><label>Nombre</label><input type="text" id="newObraNombre" placeholder="Ej: Casa García"></div>
+    <div class="form-group" style="margin-bottom:10px"><label>Cliente</label><input type="text" id="newObraCliente" placeholder="Nombre del cliente"></div>
+    <div class="form-group" style="margin-bottom:10px"><label>Dirección</label><input type="text" id="newObraDir" placeholder="Dirección de la obra"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('modalNuevaObra')">Cancelar</button>
+      <button class="btn btn-sm" onclick="crearObra()">Crear</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="modalContratista">
+  <div class="modal"><h2 id="ctModalTitle">Nuevo Contratista</h2>
+    <div class="form-group" style="margin-bottom:10px"><label>Nombre</label><input type="text" id="ctNombre" placeholder="Nombre o razón social"></div>
+    <div class="form-group" style="margin-bottom:10px"><label>Rubro</label><input type="text" id="ctRubro" placeholder="Electricidad, Sanitaria..."></div>
+    <div class="form-group" style="margin-bottom:10px"><label>Moneda</label><select id="ctMoneda"><option value="ARS">ARS</option><option value="USD">USD</option></select></div>
+    <div class="form-group" style="margin-bottom:10px"><label>Presupuesto Base</label><input type="number" id="ctPresupuesto" placeholder="0"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('modalContratista')">Cancelar</button>
+      <button class="btn btn-sm" id="ctModalBtn" onclick="saveContratista()">Agregar</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="modalPagoCt">
+  <div class="modal"><h2 id="pagoCtTitle">Registrar Pago</h2>
+    <div class="form-group" style="margin-bottom:10px"><label>Fecha</label><input type="date" id="ctPagoFecha"></div>
+    <div class="form-group" style="margin-bottom:10px"><label>Importe</label><input type="number" id="ctPagoMonto" placeholder="0"></div>
+    <div class="form-group" style="margin-bottom:10px"><label>Concepto</label><input type="text" id="ctPagoDesc" placeholder="Certificado 1..."></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('modalPagoCt')">Cancelar</button>
+      <button class="btn btn-sm" id="pagoCtBtn" onclick="savePagoCt()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SK='panelObras_v9';
+let obras=[],obraId=null,ctIdx=null,user=null;
+let editCtIdx=null,editPagoCtIdx=null,editPagoCtPIdx=null;
+
+const USERS={ADM123:'adm',TEC123:'tec',OPE123:'ope'};
+const RC={
+  adm:{name:'Administración',role:'Acceso total',nb:'#2c5f4a',ac:'#2c5f4a',a2:'#4a8c6f',tint:'#f5f4f0',dot:'#86efac',banner:false},
+  tec:{name:'Técnica',role:'Presupuestos · Sin pagos',nb:'#1e3a5f',ac:'#1e3a5f',a2:'#2d5a8e',tint:'#eff6ff',dot:'#93c5fd',banner:true,bg:'#dbeafe',bc:'#93c5fd',fc:'#1e3a5f',bi:'🔵',bt:'Sesión Técnica',bd:'Podés crear obras y cargar presupuestos. Pagos: solo Administración.'},
+  ope:{name:'Operaciones',role:'Remitos y Stock',nb:'#5b21b6',ac:'#6d28d9',a2:'#7c3aed',tint:'#f5f3ff',dot:'#c4b5fd',banner:true,bg:'#f3e8ff',bc:'#c4b5fd',fc:'#4c1d95',bi:'📦',bt:'Sesión Operaciones',bd:'Solo podés ver stock y cargar remitos por obra.'}
+};
+
+const isAdm=()=>user==='adm';
+const isOpe=()=>user==='ope';
+const canPay=()=>user==='adm';
+const canEdit=()=>user==='adm'||user==='tec';
+const canRemito=()=>user==='adm'||user==='ope';
+const who=u=>({adm:'<span class="who who-adm">ADM</span>',tec:'<span class="who who-tec">TEC</span>',ope:'<span class="who who-ope">OPE</span>'}[u]||'');
+const fmt=(n,m)=>(m==='USD'?'USD ':'$ ')+(parseFloat(n)||0).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0});
+const today=()=>new Date().toISOString().split('T')[0];
+const $=id=>document.getElementById(id);
+const openModal=id=>$(id).classList.add('open');
+const closeModal=id=>$(id).classList.remove('open');
+const toggleSection=id=>{const e=$(id);e.style.display=e.style.display==='none'?'':'none';};
+const getObra=()=>obras.find(o=>o.id===obraId);
+
+// ── CONFIRM INLINE ────────────────────────────────────
+function askDel(anchorId, onConfirm){
+  const el=$(anchorId);if(!el)return;
+  el.innerHTML=`<div class="confirm-inline">⚠️ ¿Eliminar?
+    <button class="cbtn-yes" onclick="(${onConfirm})()">Sí</button>
+    <button class="cbtn-no" onclick="renderAll()">No</button>
+  </div>`;
+}
+
+// ── ACTION CELL ───────────────────────────────────────
+function actCell(id, editFn, delFn, canEditFlag=true){
+  if(!canEditFlag) return '<td class="item-cell actions"></td>';
+  return `<td class="item-cell actions">
+    <button class="btn-edit" onclick="(${editFn})()" title="Modificar">✏️</button>
+    <button class="btn-del" onclick="askDel('${id}',${delFn})" title="Eliminar">🗑</button>
+    <div id="${id}" style="position:absolute;z-index:10"></div>
+  </td>`;
+}
+
+// ── ENTER BINDING ─────────────────────────────────────
+function bindEnter(ids, fn){
+  ids.forEach(id=>{const el=$(id);if(el)el.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();fn();}};});
+}
+function bindAllEnter(){
+  bindEnter(['honAdicDesc','honAdicMonto'], addAdicHon);
+  bindEnter(['honFecha','honPagoDesc','honPagoMonto'], addPagoHon);
+  bindEnter(['moAdicDesc','moAdicMonto'], addAdicMO);
+  bindEnter(['moFecha','moPagoDesc','moPagoMonto'], addPagoMO);
+  bindEnter(['cajaFecha','cajaDesc','cajaMonto'], addMovCaja);
+  bindEnter(['mfProveedor','mfFecha','mfMonto','mfDetalle','mfNumero'], addFacturaManual);
+  bindEnter(['mrMaterial','mrCantidad','mrUnidad'], addStockManual);
+  const nt=$('notaTexto');if(nt)nt.onkeydown=e=>{if(e.key==='Enter'&&e.ctrlKey){e.preventDefault();addNota();}};
+}
+
+// ── AUTH ──────────────────────────────────────────────
+function doLogin(){
+  const pass=$('loginPass').value.trim(), role=USERS[pass];
+  if(!role){$('loginError').style.display='block';return;}
+  user=role;
+  $('loginView').style.display='none';
+  $('appView').style.display='';
+  $('loginPass').value='';$('loginError').style.display='none';
+  applyRole();
+  load().then(()=>{renderHome();});
+}
+function doLogout(){
+  user=null;$('appView').style.display='none';$('loginView').style.display='flex';
+  $('homeView').style.display='';$('detailView').style.display='none';$('navBack').style.display='none';
+}
+function applyRole(){
+  const c=RC[user];
+  document.documentElement.style.setProperty('--nav-bg',c.nb);
+  document.documentElement.style.setProperty('--accent',c.ac);
+  document.documentElement.style.setProperty('--accent2',c.a2);
+  document.documentElement.style.setProperty('--tint',c.tint);
+  document.body.style.background=c.tint;
+  $('loginView').style.background=c.nb;
+  $('userDot').style.background=c.dot;
+  $('userName').textContent=c.name;
+  $('userRole').textContent=c.role;
+  const b=$('roleBanner');
+  if(c.banner){b.style.cssText=`display:flex;background:${c.bg};border-bottom-color:${c.bc};color:${c.fc};`;$('bannerIcon').textContent=c.bi;$('bannerTitle').textContent=c.bt;$('bannerDesc').textContent=c.bd;}
+  else b.style.display='none';
+  document.querySelectorAll('.pago-only').forEach(el=>el.style.display=canPay()?'':'none');
+  $('btnNuevaObra').style.display=isOpe()?'none':'';
+  $('btnResumen').style.display=isOpe()?'none':'';
+}
+
+// ── STORAGE ───────────────────────────────────────────
+function save(){const d=JSON.stringify(obras);try{window.storage.set(SK,d);}catch(e){}localStorage.setItem(SK,d);}
+async function load(){try{const r=await window.storage.get(SK);if(r?.value){obras=JSON.parse(r.value);return;}}catch(e){}const l=localStorage.getItem(SK);if(l)obras=JSON.parse(l);}
+
+// ── RESUMEN ───────────────────────────────────────────
+let resumenVis=false;
+function toggleResumen(){resumenVis=!resumenVis;const p=$('resumenPanel');if(resumenVis){renderResumen();p.style.display='';}else p.style.display='none';}
+function calcO(o){
+  const ah=(o.hon?.adicionales||[]).reduce((s,a)=>s+a.monto,0),th=(o.hon?.total||0)+ah,ch=(o.hon?.pagos||[]).reduce((s,p)=>s+p.monto,0);
+  const am=(o.mo?.adicionales||[]).reduce((s,a)=>s+a.monto,0),tm=(o.mo?.total||0)+am,pm=(o.mo?.pagos||[]).reduce((s,p)=>s+p.monto,0),mm=o.mo?.moneda||'ARS';
+  return{th,ch,sh:th-ch,tm,pm,sm:tm-pm,mm};
+}
+function renderResumen(){
+  const p=$('resumenPanel');if(!obras.length){p.innerHTML='<div class="resumen-panel"><p style="color:var(--muted);text-align:center;padding:20px">Sin obras.</p></div>';return;}
+  const tH={t:0,c:0,s:0},tM={USD:{t:0,c:0,s:0},ARS:{t:0,c:0,s:0}};
+  const rows=obras.map(o=>{const c=calcO(o);tH.t+=c.th;tH.c+=c.ch;tH.s+=c.sh;tM[c.mm].t+=c.tm;tM[c.mm].c+=c.pm;tM[c.mm].s+=c.sm;
+    return`<tr><td><strong>${o.nombre}</strong><br><span style="color:var(--muted);font-size:0.76rem">${o.cliente}</span></td>
+    <td>${fmt(c.th,'USD')}</td><td style="color:var(--success)">${fmt(c.ch,'USD')}</td><td class="${c.sh>0?'red':'green'}">${fmt(c.sh,'USD')}</td>
+    <td>${fmt(c.tm,c.mm)}</td><td style="color:var(--success)">${fmt(c.pm,c.mm)}</td><td class="${c.sm>0?'red':'green'}">${fmt(c.sm,c.mm)}</td></tr>`;}).join('');
+  const moB=['USD','ARS'].filter(m=>tM[m].t>0).map(m=>`<div style="margin-bottom:10px"><div style="font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px">M.Obra en ${m}</div><div class="resumen-grid">
+    <div class="resumen-box"><div class="rlabel">Total</div><div class="rvalue blue">${fmt(tM[m].t,m)}</div></div>
+    <div class="resumen-box"><div class="rlabel">Pagado</div><div class="rvalue green">${fmt(tM[m].c,m)}</div></div>
+    <div class="resumen-box"><div class="rlabel">Saldo</div><div class="rvalue ${tM[m].s>0?'red':'green'}">${fmt(tM[m].s,m)}</div></div></div></div>`).join('');
+  const moR=['USD','ARS'].filter(m=>tM[m].t>0).map(m=>`<tr class="total-row"><td>TOTAL M.O. ${m}</td><td></td><td></td><td></td><td>${fmt(tM[m].t,m)}</td><td>${fmt(tM[m].c,m)}</td><td class="${tM[m].s>0?'red':'green'}">${fmt(tM[m].s,m)}</td></tr>`).join('');
+  p.innerHTML=`<div class="resumen-panel"><h2>📊 Resumen General de Honorarios</h2>
+  <div style="margin-bottom:12px"><div style="font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px">Honorarios en USD</div>
+  <div class="resumen-grid"><div class="resumen-box"><div class="rlabel">Total</div><div class="rvalue blue">${fmt(tH.t,'USD')}</div></div>
+  <div class="resumen-box"><div class="rlabel">Cobrado</div><div class="rvalue green">${fmt(tH.c,'USD')}</div></div>
+  <div class="resumen-box"><div class="rlabel">Saldo</div><div class="rvalue ${tH.s>0?'red':'green'}">${fmt(tH.s,'USD')}</div></div></div></div>${moB}
+  <div style="overflow-x:auto"><table class="resumen-tbl"><thead><tr><th>Obra</th><th>Hon.Total</th><th>Hon.Cobrado</th><th>Hon.Saldo</th><th>M.O.Total</th><th>M.O.Pagado</th><th>M.O.Saldo</th></tr></thead>
+  <tbody>${rows}</tbody><tfoot><tr class="total-row"><td>TOTAL HON.</td><td>${fmt(tH.t,'USD')}</td><td>${fmt(tH.c,'USD')}</td><td class="${tH.s>0?'red':'green'}">${fmt(tH.s,'USD')}</td><td></td><td></td><td></td></tr>${moR}</tfoot></table></div></div>`;
+}
+
+// ── HOME / OBRAS ──────────────────────────────────────
+function goHome(){$('homeView').style.display='';$('detailView').style.display='none';$('navBack').style.display='none';$('navTitle').textContent='🏗️ Gestión de Obras';renderHome();}
+function renderHome(){
+  const grid=$('obrasGrid'),empty=$('emptyObras');grid.innerHTML='';
+  if(!obras.length){empty.style.display='block';return;}empty.style.display='none';
+  obras.forEach(o=>{
+    const c=calcO(o),sc=(o.caja||[]).reduce((s,m)=>s+(m.tipo==='ingreso'?1:-1)*m.monto,0),nc=(o.notas||[]).length;
+    const el=document.createElement('div');el.className='obra-card';
+    if(isOpe()){el.innerHTML=`<h3>${o.nombre}</h3><div class="cliente">👤 ${o.cliente}${o.dir?' · '+o.dir:''}</div><div class="chips"><span class="chip chip-blue">📦 ${Object.keys(o.stock||{}).length} materiales</span></div>`;}
+    else{el.innerHTML=`<h3>${o.nombre} ${o.creadoPor?who(o.creadoPor):''}</h3><div class="cliente">👤 ${o.cliente}${o.dir?' · '+o.dir:''}</div>
+      <div class="chips"><span class="chip ${c.sh>0?'chip-yellow':'chip-green'}">Hon: ${fmt(c.sh,'USD')}</span>
+      <span class="chip ${sc<0?'chip-red':'chip-blue'}">Caja: ${fmt(sc,'ARS')}</span>${nc?`<span class="chip chip-blue">📝 ${nc}</span>`:''}</div>`;}
+    el.onclick=()=>openObra(o.id);grid.appendChild(el);
+  });
+  if(resumenVis)renderResumen();
+}
+function crearObra(){
+  const n=$('newObraNombre').value.trim(),c=$('newObraCliente').value.trim();
+  if(!n||!c)return alert('Nombre y cliente son requeridos');
+  obras.push({id:Date.now(),nombre:n,cliente:c,dir:$('newObraDir').value.trim(),creadoPor:user,
+    hon:{moneda:'USD',total:0,tc:1,adicionales:[],pagos:[]},
+    mo:{moneda:'ARS',total:0,tc:1300,adicionales:[],pagos:[]},
+    caja:[],facturas:[],stock:{},contratistas:[],notas:[]});
+  save();closeModal('modalNuevaObra');['newObraNombre','newObraCliente','newObraDir'].forEach(id=>$(id).value='');renderHome();
+}
+function openObra(id){
+  obraId=id;const o=getObra();
+  $('homeView').style.display='none';$('detailView').style.display='';$('navBack').style.display='';$('navTitle').textContent=`🏗️ ${o.nombre}`;
+  document.querySelectorAll('.pago-only').forEach(el=>el.style.display=canPay()?'':'none');
+  if(isOpe()){document.querySelectorAll('.tab').forEach(t=>t.style.display='none');document.querySelectorAll('.tab').forEach(t=>{if(t.getAttribute('onclick')?.includes('proveedores'))t.style.display='';});showPanel('proveedores');}
+  else{document.querySelectorAll('.tab').forEach(t=>t.style.display='');showPanel('honorarios');}
+  if(!o.notas)o.notas=[];
+  $('honFecha').value=today();$('moFecha').value=today();$('cajaFecha').value=today();$('mfFecha').value=today();$('ctPagoFecha').value=today();
+  renderAll();
+  setTimeout(bindAllEnter,50);
+}
+function showPanel(n){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  $('panel-'+n).classList.add('active');
+  const idx={honorarios:0,caja:1,proveedores:2,contratistas:3,notas:4}[n];
+  if(idx!==undefined)document.querySelectorAll('.tab')[idx]?.classList.add('active');
+}
+function renderAll(){renderHon();renderMO();renderCaja();renderFacturas();renderStock();renderContratistas();renderNotas();}
+
+// ── HON BASE ENTRY ────────────────────────────────────
+function renderHonBaseEntry(){
+  const o=getObra();if(!o)return;
+  const entry=$('honBaseEntry');if(!entry)return;
+  if(canEdit()){
+    entry.innerHTML=`<div class="entry-row">
+      <span class="entry-label">Ppto. Base USD</span>
+      <input type="number" id="honBaseInput" placeholder="0" value="${o.hon.total||''}" style="max-width:160px">
+      <button class="btn btn-sm" onclick="guardarHonBase()">✔ Confirmar</button>
+    </div><div class="entry-hint">⏎ Enter para confirmar · no se guarda hasta confirmar</div>`;
+    setTimeout(()=>{const i=$('honBaseInput');if(i){i.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();guardarHonBase();};};}},10);
+  } else {
+    entry.innerHTML=`<div class="item-list"><div class="item-row"><span class="item-cell"><span class="tag tag-base">Base</span></span><span class="item-cell grow">Presupuesto Base</span><span class="item-cell num">${fmt(o.hon.total,'USD')}</span><span class="item-cell muted">${who('adm')}</span><td class="item-cell actions"></td></div></div>`;
+  }
+}
+function guardarHonBase(){
+  if(!canEdit())return;
+  const o=getObra(),v=parseFloat($('honBaseInput')?.value)||0;
+  o.hon.total=v;save();renderHon();
+}
+
+// ── MO BASE ENTRY ─────────────────────────────────────
+function renderMOBaseEntry(){
+  const o=getObra();if(!o)return;
+  const entry=$('moBaseEntry');if(!entry)return;
+  if(canEdit()){
+    entry.innerHTML=`<div class="entry-row">
+      <span class="entry-label">Ppto. Base</span>
+      <select id="moMonedaInput" style="max-width:80px"><option value="ARS" ${o.mo.moneda==='ARS'?'selected':''}>ARS</option><option value="USD" ${o.mo.moneda==='USD'?'selected':''}>USD</option></select>
+      <input type="number" id="moBaseInput" placeholder="0" value="${o.mo.total||''}" style="max-width:140px">
+      <span class="entry-label">TC</span>
+      <input type="number" id="moTCInput" placeholder="1300" value="${o.mo.tc||1300}" style="max-width:90px">
+      <button class="btn btn-sm" onclick="guardarMOBase()">✔ Confirmar</button>
+    </div><div class="entry-hint">⏎ Enter para confirmar</div>`;
+    setTimeout(()=>{[$('moBaseInput'),$('moTCInput')].forEach(i=>{if(i)i.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();guardarMOBase();}}; });},10);
+  } else {
+    entry.innerHTML=`<div class="item-list"><div class="item-row"><span class="item-cell"><span class="tag tag-base">Base</span></span><span class="item-cell grow">Presupuesto Base (${o.mo.moneda})</span><span class="item-cell num">${fmt(o.mo.total,o.mo.moneda)}</span><span class="item-cell muted">${who('adm')}</span><td class="item-cell actions"></td></div></div>`;
+  }
+}
+function guardarMOBase(){
+  if(!canEdit())return;
+  const o=getObra();
+  o.mo.moneda=$('moMonedaInput')?.value||'ARS';
+  o.mo.total=parseFloat($('moBaseInput')?.value)||0;
+  o.mo.tc=parseFloat($('moTCInput')?.value)||1300;
+  save();renderMO();
+}
+
+// ── HON ───────────────────────────────────────────────
+function addAdicHon(){
+  if(!canEdit())return;const o=getObra();
+  const m=parseFloat($('honAdicMonto').value)||0;if(!m)return;
+  if(!o.hon.adicionales)o.hon.adicionales=[];
+  o.hon.adicionales.push({desc:$('honAdicDesc').value||'Adicional',monto:m,por:user});
+  $('honAdicMonto').value='';$('honAdicDesc').value='';$('honAdicDesc').focus();
+  save();renderHon();
+}
+function editAdicHon(i){
+  const a=getObra().hon.adicionales[i];
+  $('honAdicDesc').value=a.desc;$('honAdicMonto').value=a.monto;
+  getObra().hon.adicionales.splice(i,1);save();renderHon();$('honAdicDesc').focus();
+}
+function delAdicHon(i){if(!isAdm())return;getObra().hon.adicionales.splice(i,1);save();renderHon();}
+function addPagoHon(){
+  if(!canPay())return;const o=getObra();
+  const m=parseFloat($('honPagoMonto').value)||0;if(!m)return;
+  o.hon.pagos.push({fecha:$('honFecha').value||today(),desc:$('honPagoDesc').value||'Pago',monto:m,por:user});
+  $('honPagoMonto').value='';$('honPagoDesc').value='';$('honPagoDesc').focus();
+  save();renderHon();
+}
+function editPagoHon(i){
+  const p=getObra().hon.pagos[i];
+  $('honFecha').value=p.fecha;$('honPagoDesc').value=p.desc;$('honPagoMonto').value=p.monto;
+  getObra().hon.pagos.splice(i,1);save();renderHon();$('honPagoMonto').focus();
+}
+function delPagoHon(i){if(!isAdm())return;getObra().hon.pagos.splice(i,1);save();renderHon();}
+function renderHon(){
+  const o=getObra();if(!o)return;
+  renderHonBaseEntry();
+  const adics=o.hon.adicionales||[],base=o.hon.total||0;
+  const at=adics.reduce((s,a)=>s+a.monto,0),total=base+at;
+  const pag=(o.hon.pagos||[]).reduce((s,p)=>s+p.monto,0),saldo=total-pag;
+  $('statsHon').innerHTML=`
+    <div class="stat-box"><div class="label">Base USD</div><div class="value">${fmt(base,'USD')}</div></div>
+    <div class="stat-box"><div class="label">Adicionales</div><div class="value ${at>=0?'green':'red'}">${fmt(at,'USD')}</div></div>
+    <div class="stat-box"><div class="label">Total</div><div class="value blue">${fmt(total,'USD')}</div></div>
+    <div class="stat-box"><div class="label">Cobrado</div><div class="value green">${fmt(pag,'USD')}</div></div>
+    <div class="stat-box"><div class="label">Saldo</div><div class="value ${saldo>0?'red':'green'}">${fmt(saldo,'USD')}</div></div>`;
+  $('listaHonAdic').innerHTML=adics.length?`<div class="item-list">`+adics.map((a,i)=>`
+    <div class="item-row" style="position:relative"><span class="item-cell"><span class="tag tag-adic">Adicional</span></span>
+    <span class="item-cell grow">${a.desc}</span>
+    <span class="item-cell num ${a.monto<0?'red':''}">${fmt(a.monto,'USD')}</span>
+    <span class="item-cell muted">${who(a.por)}</span>
+    <span class="item-cell actions">${canEdit()?`<button class="btn-edit" onclick="editAdicHon(${i})">✏️</button><button class="btn-del" onclick="askDel('hA${i}',()=>delAdicHon(${i}))">🗑</button><div id="hA${i}" style="position:absolute;right:0;top:100%;z-index:10"></div>`:''}
+    </span></div>`).join('')+`<div class="item-row" style="background:#f0fdf4">
+    <span class="item-cell" colspan="2"></span><span class="item-cell grow" style="font-weight:600;color:var(--muted);font-size:0.76rem">TOTAL ADICIONALES</span>
+    <span class="item-cell num">${fmt(at,'USD')}</span><span class="item-cell muted"></span><span class="item-cell actions"></span></div></div>`
+    :'';
+  const pH=(o.hon.pagos||[]).length?`<div class="item-list">`+(o.hon.pagos||[]).map((p,i)=>`
+    <div class="item-row" style="position:relative"><span class="item-cell"><span class="tag tag-pago">Pago</span></span>
+    <span class="item-cell muted">${p.fecha}</span><span class="item-cell grow">${p.desc}</span>
+    <span class="item-cell num">${fmt(p.monto,'USD')}</span><span class="item-cell muted">${who(p.por)}</span>
+    <span class="item-cell actions">${canPay()?`<button class="btn-edit" onclick="editPagoHon(${i})">✏️</button><button class="btn-del" onclick="askDel('hP${i}',()=>delPagoHon(${i}))">🗑</button><div id="hP${i}" style="position:absolute;right:0;top:100%;z-index:10"></div>`:''}
+    </span></div>`).join('')+'</div>':'';
+  $('listaHonPagos').innerHTML=(!canPay()&&(o.hon.pagos||[]).length)?`<h4 style="margin-top:14px">Pagos Recibidos</h4>${pH}`:canPay()?pH:'';
+}
+
+// ── MO ────────────────────────────────────────────────
+function addAdicMO(){
+  if(!canEdit())return;const o=getObra();
+  const m=parseFloat($('moAdicMonto').value)||0;if(!m)return;
+  if(!o.mo.adicionales)o.mo.adicionales=[];
+  o.mo.adicionales.push({desc:$('moAdicDesc').value||'Adicional',monto:m,por:user});
+  $('moAdicMonto').value='';$('moAdicDesc').value='';$('moAdicDesc').focus();
+  save();renderMO();
+}
+function editAdicMO(i){
+  const a=getObra().mo.adicionales[i];
+  $('moAdicDesc').value=a.desc;$('moAdicMonto').value=a.monto;
+  getObra().mo.adicionales.splice(i,1);save();renderMO();$('moAdicDesc').focus();
+}
+function delAdicMO(i){if(!isAdm())return;getObra().mo.adicionales.splice(i,1);save();renderMO();}
+function addPagoMO(){
+  if(!canPay())return;const o=getObra();
+  const m=parseFloat($('moPagoMonto').value)||0;if(!m)return;
+  o.mo.pagos.push({fecha:$('moFecha').value||today(),desc:$('moPagoDesc').value||'Pago',monto:m,por:user});
+  $('moPagoMonto').value='';$('moPagoDesc').value='';$('moPagoDesc').focus();
+  save();renderMO();
+}
+function editPagoMO(i){
+  const p=getObra().mo.pagos[i];
+  $('moFecha').value=p.fecha;$('moPagoDesc').value=p.desc;$('moPagoMonto').value=p.monto;
+  getObra().mo.pagos.splice(i,1);save();renderMO();$('moPagoMonto').focus();
+}
+function delPagoMO(i){if(!isAdm())return;getObra().mo.pagos.splice(i,1);save();renderMO();}
+function renderMO(){
+  const o=getObra();if(!o)return;
+  renderMOBaseEntry();
+  const mon=o.mo.moneda||'ARS',adics=o.mo.adicionales||[],base=o.mo.total||0;
+  const at=adics.reduce((s,a)=>s+a.monto,0),total=base+at;
+  const pag=(o.mo.pagos||[]).reduce((s,p)=>s+p.monto,0),saldo=total-pag;
+  $('statsMO').innerHTML=`
+    <div class="stat-box"><div class="label">Base ${mon}</div><div class="value">${fmt(base,mon)}</div></div>
+    <div class="stat-box"><div class="label">Adicionales</div><div class="value ${at>=0?'green':'red'}">${fmt(at,mon)}</div></div>
+    <div class="stat-box"><div class="label">Total</div><div class="value blue">${fmt(total,mon)}</div></div>
+    <div class="stat-box"><div class="label">Pagado</div><div class="value green">${fmt(pag,mon)}</div></div>
+    <div class="stat-box"><div class="label">Saldo</div><div class="value ${saldo>0?'red':'green'}">${fmt(saldo,mon)}</div></div>`;
+  $('listaMOAdic').innerHTML=adics.length?`<div class="item-list">`+adics.map((a,i)=>`
+    <div class="item-row" style="position:relative"><span class="item-cell"><span class="tag tag-adic">Adicional</span></span>
+    <span class="item-cell grow">${a.desc}</span>
+    <span class="item-cell num ${a.monto<0?'red':''}">${fmt(a.monto,mon)}</span>
+    <span class="item-cell muted">${who(a.por)}</span>
+    <span class="item-cell actions">${canEdit()?`<button class="btn-edit" onclick="editAdicMO(${i})">✏️</button><button class="btn-del" onclick="askDel('mA${i}',()=>delAdicMO(${i}))">🗑</button><div id="mA${i}" style="position:absolute;right:0;top:100%;z-index:10"></div>`:''}
+    </span></div>`).join('')+`<div class="item-row" style="background:#f0fdf4">
+    <span class="item-cell grow" style="font-weight:600;color:var(--muted);font-size:0.76rem">TOTAL ADICIONALES</span>
+    <span class="item-cell num">${fmt(at,mon)}</span><span class="item-cell muted"></span><span class="item-cell actions"></span></div></div>`:''
+  const pH=(o.mo.pagos||[]).length?`<div class="item-list">`+(o.mo.pagos||[]).map((p,i)=>`
+    <div class="item-row" style="position:relative"><span class="item-cell"><span class="tag tag-pago">Pago</span></span>
+    <span class="item-cell muted">${p.fecha}</span><span class="item-cell grow">${p.desc}</span>
+    <span class="item-cell num">${fmt(p.monto,mon)}</span><span class="item-cell muted">${who(p.por)}</span>
+    <span class="item-cell actions">${canPay()?`<button class="btn-edit" onclick="editPagoMO(${i})">✏️</button><button class="btn-del" onclick="askDel('mP${i}',()=>delPagoMO(${i}))">🗑</button><div id="mP${i}" style="position:absolute;right:0;top:100%;z-index:10"></div>`:''}
+    </span></div>`).join('')+'</div>':'';
+  $('listaMOPagos').innerHTML=(!canPay()&&(o.mo.pagos||[]).length)?`<h4 style="margin-top:14px">Pagos Realizados</h4>${pH}`:canPay()?pH:'';
+}
+
+// ── CAJA ──────────────────────────────────────────────
+function addMovCaja(){
+  if(!canPay())return;const o=getObra();
+  const m=parseFloat($('cajaMonto').value)||0;if(!m)return;
+  o.caja.push({fecha:$('cajaFecha').value||today(),tipo:$('cajaTipo').value,desc:$('cajaDesc').value||'-',monto:m,por:user});
+  $('cajaMonto').value='';$('cajaDesc').value='';$('cajaDesc').focus();
+  save();renderCaja();
+}
+function editMovCaja(i){
+  const m=getObra().caja[i];
+  $('cajaFecha').value=m.fecha;$('cajaTipo').value=m.tipo;$('cajaDesc').value=m.desc;$('cajaMonto').value=m.monto;
+  getObra().caja.splice(i,1);save();renderCaja();$('cajaMonto').focus();
+}
+function delMovCaja(i){if(!isAdm())return;getObra().caja.splice(i,1);save();renderCaja();}
+function renderCaja(){
+  const o=getObra();if(!o)return;
+  const ing=o.caja.filter(m=>m.tipo==='ingreso').reduce((s,m)=>s+m.monto,0);
+  const egr=o.caja.filter(m=>m.tipo==='egreso').reduce((s,m)=>s+m.monto,0);
+  $('statsCaja').innerHTML=`
+    <div class="stat-box"><div class="label">Ingresos</div><div class="value green">${fmt(ing,'ARS')}</div></div>
+    <div class="stat-box"><div class="label">Egresos</div><div class="value red">${fmt(egr,'ARS')}</div></div>
+    <div class="stat-box"><div class="label">Saldo</div><div class="value ${(ing-egr)<0?'red':'blue'}">${fmt(ing-egr,'ARS')}</div></div>`;
+  let saldo=0;
+  $('listaCaja').innerHTML=o.caja.length?`<div class="item-list">`+o.caja.map((m,i)=>{
+    saldo+=(m.tipo==='ingreso'?1:-1)*m.monto;
+    return`<div class="item-row" style="position:relative">
+    <span class="item-cell"><span class="tag ${m.tipo==='ingreso'?'tag-ingreso':'tag-egreso'}">${m.tipo==='ingreso'?'Ingreso':'Egreso'}</span></span>
+    <span class="item-cell muted">${m.fecha}</span><span class="item-cell grow">${m.desc} ${who(m.por)}</span>
+    <span class="item-cell num">${fmt(m.monto,'ARS')}</span>
+    <span class="item-cell muted" style="color:${saldo<0?'var(--danger)':'var(--muted)'}">${fmt(saldo,'ARS')}</span>
+    <span class="item-cell actions">${canPay()?`<button class="btn-edit" onclick="editMovCaja(${i})">✏️</button><button class="btn-del" onclick="askDel('cj${i}',()=>delMovCaja(${i}))">🗑</button><div id="cj${i}" style="position:absolute;right:0;top:100%;z-index:10"></div>`:''}
+    </span></div>`;}).join('')+'</div>':'<p style="color:var(--muted);text-align:center;padding:16px">Sin movimientos.</p>';
+}
+
+// ── PROVEEDORES ───────────────────────────────────────
+function addFacturaManual(){
+  if(!canPay())return;
+  const prov=$('mfProveedor').value.trim();if(!prov)return alert('Ingresá el proveedor');
+  getObra().facturas.push({proveedor:prov,fecha:$('mfFecha').value||today(),monto:parseFloat($('mfMonto').value)||0,detalle:$('mfDetalle').value||'-',numero:$('mfNumero').value||'-',pagos:[],por:user});
+  ['mfProveedor','mfMonto','mfDetalle','mfNumero'].forEach(id=>$(id).value='');$('mfProveedor').focus();
+  save();renderFacturas();
+}
+async function procesarFactura(event){
+  if(!canPay())return;const file=event.target.files[0];if(!file)return;
+  const proc=$('processingFactura');proc.style.display='block';
+  try{const b64=await f2b(file);const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:file.type||'image/jpeg',data:b64}},{type:'text',text:'Analizá esta factura. Solo JSON sin backticks: {"proveedor":"","fecha":"YYYY-MM-DD","monto":0,"detalle":"","numero":""}'}]}]})});
+  const d=await r.json();const t=d.content?.find(b=>b.type==='text')?.text||'{}';
+  let p;try{p=JSON.parse(t.replace(/```json|```/g,''));}catch(e){p={proveedor:'No identificado',fecha:today(),monto:0,detalle:'Ver factura',numero:'-'};}
+  getObra().facturas.push({...p,pagos:[],por:user});save();renderFacturas();}catch(e){alert('Error.');}
+  proc.style.display='none';event.target.value='';
+}
+async function procesarRemito(event){
+  if(!canRemito())return;const file=event.target.files[0];if(!file)return;
+  const proc=$('processingRemito');proc.style.display='block';
+  try{const b64=await f2b(file);const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:file.type||'image/jpeg',data:b64}},{type:'text',text:'Analizá este remito. Solo JSON sin backticks: {"items":[{"material":"","cantidad":0,"unidad":"u"}]}'}]}]})});
+  const d=await r.json();const t=d.content?.find(b=>b.type==='text')?.text||'{}';
+  let p;try{p=JSON.parse(t.replace(/```json|```/g,''));}catch(e){p={items:[]};}
+  const o=getObra();(p.items||[]).forEach(it=>{const k=it.material?.toLowerCase().trim()||'?';if(!o.stock[k])o.stock[k]={nombre:it.material,cantidad:0,unidad:it.unidad||'u',por:user};o.stock[k].cantidad+=parseFloat(it.cantidad)||0;});
+  save();renderStock();alert(`✅ ${(p.items||[]).length} materiales actualizados`);}catch(e){alert('Error.');}
+  proc.style.display='none';event.target.value='';
+}
+function addStockManual(){
+  if(!canRemito())return;const mat=$('mrMaterial').value.trim();if(!mat)return;
+  const cant=parseFloat($('mrCantidad').value)||0,unidad=$('mrUnidad').value||'u';
+  const o=getObra(),k=mat.toLowerCase().trim();
+  if(!o.stock[k])o.stock[k]={nombre:mat,cantidad:0,unidad,por:user};
+  o.stock[k].cantidad+=cant;
+  $('mrMaterial').value='';$('mrCantidad').value='';$('mrMaterial').focus();
+  save();renderStock();
+}
+const f2b=file=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=()=>rej();r.readAsDataURL(file);});
+function delFactura(i){if(!isAdm())return;getObra().facturas.splice(i,1);save();renderFacturas();}
+function pagarFactura(i){
+  if(!isAdm())return;const o=getObra();const f=o.facturas[i];
+  const pag=(f.pagos||[]).reduce((s,p)=>s+p,0),saldo=f.monto-pag;
+  const m=parseFloat(prompt(`Saldo: ${fmt(saldo,'ARS')}\nImporte a pagar:`));
+  if(!m||m<=0)return;if(!f.pagos)f.pagos=[];f.pagos.push(m);
+  o.caja.push({fecha:today(),tipo:'egreso',desc:`Pago ${f.proveedor}`,monto:Math.min(m,saldo),por:user});
+  save();renderFacturas();renderCaja();
+}
+function renderFacturas(){
+  const o=getObra();if(!o)return;
+  $('listaFacturas').innerHTML=o.facturas.length?`<div class="item-list">`+o.facturas.map((f,i)=>{
+    const pag=(f.pagos||[]).reduce((s,p)=>s+p,0),est=pag>=f.monto?'pagado':pag>0?'parcial':'pendiente';
+    return`<div class="item-row" style="position:relative">
+    <span class="item-cell"><span class="badge ${est==='pagado'?'badge-green':est==='parcial'?'badge-yellow':'badge-red'}">${est}</span></span>
+    <span class="item-cell muted">${f.fecha}</span>
+    <span class="item-cell grow">${f.proveedor} ${who(f.por)} <span style="color:var(--muted);font-size:0.76rem">${f.detalle}</span></span>
+    <span class="item-cell num">${fmt(f.monto,'ARS')}</span>
+    <span class="item-cell muted">${f.numero||'-'}</span>
+    <span class="item-cell actions">${isAdm()?`<button class="btn-edit" onclick="pagarFactura(${i})" title="Registrar pago">💳</button><button class="btn-del" onclick="askDel('fa${i}',()=>delFactura(${i}))">🗑</button><div id="fa${i}" style="position:absolute;right:0;top:100%;z-index:10"></div>`:''}
+    </span></div>`;}).join('')+'</div>':'<p style="color:var(--muted);text-align:center;padding:16px">Sin facturas.</p>';
+}
+function delStock(k){if(!isAdm())return;delete getObra().stock[k];save();renderStock();}
+function editStock(k){
+  const o=getObra(),it=o.stock[k];
+  $('mrMaterial').value=it.nombre;$('mrCantidad').value=it.cantidad;$('mrUnidad').value=it.unidad;
+  delete o.stock[k];save();renderStock();toggleSection('manualRemitoForm');$('mrMaterial').focus();
+}
+function renderStock(){
+  const o=getObra();if(!o)return;
+  const keys=Object.keys(o.stock),vals=Object.values(o.stock);
+  $('stockList').innerHTML=vals.length?`<div class="item-list">`+vals.map((it,i)=>`
+    <div class="item-row" style="position:relative">
+    <span class="item-cell grow">${it.nombre} ${it.por?who(it.por):''}</span>
+    <span class="item-cell num" style="color:var(--accent)">${it.cantidad} ${it.unidad}</span>
+    <span class="item-cell actions">${canRemito()?`<button class="btn-edit" onclick="editStock('${keys[i]}')">✏️</button>`:''}${isAdm()?`<button class="btn-del" onclick="askDel('sk${i}',()=>delStock('${keys[i]}'))">🗑</button><div id="sk${i}" style="position:absolute;right:0;top:100%;z-index:10"></div>`:''}
+    </span></div>`).join('')+'</div>':'<p style="color:var(--muted);text-align:center;padding:12px">Sin stock registrado.</p>';
+}
+
+// ── CONTRATISTAS ──────────────────────────────────────
+function abrirNuevoContratista(){editCtIdx=null;$('ctModalTitle').textContent='Nuevo Contratista';$('ctModalBtn').textContent='Agregar';['ctNombre','ctRubro','ctPresupuesto'].forEach(id=>$(id).value='');openModal('modalContratista');}
+function saveContratista(){
+  const n=$('ctNombre').value.trim();if(!n)return;
+  const o=getObra(),item={nombre:n,rubro:$('ctRubro').value,moneda:$('ctMoneda').value,presupuesto:parseFloat($('ctPresupuesto').value)||0};
+  if(editCtIdx!==null){Object.assign(o.contratistas[editCtIdx],item);editCtIdx=null;}
+  else o.contratistas.push({...item,adicionales:[],pagos:[],por:user});
+  ['ctNombre','ctRubro','ctPresupuesto'].forEach(id=>$(id).value='');
+  closeModal('modalContratista');save();renderContratistas();
+}
+function editContratista(i){
+  const ct=getObra().contratistas[i];editCtIdx=i;
+  $('ctNombre').value=ct.nombre;$('ctRubro').value=ct.rubro;$('ctMoneda').value=ct.moneda;$('ctPresupuesto').value=ct.presupuesto;
+  $('ctModalTitle').textContent='Modificar Contratista';$('ctModalBtn').textContent='Guardar cambios';
+  openModal('modalContratista');
+}
+function delContratista(i){if(!isAdm())return;getObra().contratistas.splice(i,1);save();renderContratistas();}
+
+// Adicionales contratista — inline entry per contratista
+function addAdicCt(ctI){
+  const desc=$(`ctAdicDesc${ctI}`)?.value||'Adicional',monto=parseFloat($(`ctAdicMonto${ctI}`)?.value)||0;if(!monto)return;
+  getObra().contratistas[ctI].adicionales.push({desc,monto,por:user});
+  if($(`ctAdicDesc${ctI}`))$(`ctAdicDesc${ctI}`).value='';if($(`ctAdicMonto${ctI}`))$(`ctAdicMonto${ctI}`).value='';
+  save();renderContratistas();
+}
+function editAdicCt(ctI,ai){
+  const a=getObra().contratistas[ctI].adicionales[ai];
+  if($(`ctAdicDesc${ctI}`))$(`ctAdicDesc${ctI}`).value=a.desc;if($(`ctAdicMonto${ctI}`))$(`ctAdicMonto${ctI}`).value=a.monto;
+  getObra().contratistas[ctI].adicionales.splice(ai,1);save();renderContratistas();
+}
+function delAdicCt(ctI,ai){if(!isAdm())return;getObra().contratistas[ctI].adicionales.splice(ai,1);save();renderContratistas();}
+function savePagoCt(){
+  if(!canPay())return;const o=getObra();const ct=o.contratistas[ctIdx];
+  const m=parseFloat($('ctPagoMonto').value)||0;if(!m)return;
+  const fecha=$('ctPagoFecha').value||today(),desc=$('ctPagoDesc').value||'Pago';
+  if(editPagoCtPIdx!==null){ct.pagos[editPagoCtPIdx]={fecha,desc,monto:m,por:ct.pagos[editPagoCtPIdx].por};editPagoCtPIdx=null;$('pagoCtTitle').textContent='Registrar Pago';$('pagoCtBtn').textContent='Guardar';}
+  else{ct.pagos.push({fecha,desc,monto:m,por:user});o.caja.push({fecha,tipo:'egreso',desc:`Pago ${ct.nombre} — ${desc}`,monto:m,por:user});}
+  $('ctPagoMonto').value='';$('ctPagoDesc').value='';
+  closeModal('modalPagoCt');save();renderContratistas();renderCaja();
+}
+function editPagoCt(ctI,pi){
+  const p=getObra().contratistas[ctI].pagos[pi];ctIdx=ctI;editPagoCtPIdx=pi;
+  $('ctPagoFecha').value=p.fecha;$('ctPagoMonto').value=p.monto;$('ctPagoDesc').value=p.desc;
+  $('pagoCtTitle').textContent='Modificar Pago';$('pagoCtBtn').textContent='Guardar cambios';
+  openModal('modalPagoCt');
+}
+function delPagoCt(ctI,pi){if(!isAdm())return;getObra().contratistas[ctI].pagos.splice(pi,1);save();renderContratistas();}
+
+function renderContratistas(){
+  const o=getObra();if(!o)return;
+  const div=$('contratistasList');
+  if(!o.contratistas.length){div.innerHTML='<p style="color:var(--muted);text-align:center;padding:16px">Sin contratistas.</p>';return;}
+  div.innerHTML=o.contratistas.map((ct,i)=>{
+    const at=ct.adicionales.reduce((s,a)=>s+a.monto,0),total=ct.presupuesto+at,pag=ct.pagos.reduce((s,p)=>s+p.monto,0),saldo=total-pag;
+    return`<div class="section-card" style="border-left:4px solid var(--accent2);margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+        <div><strong>${ct.nombre}</strong> ${who(ct.por||'adm')} <span style="color:var(--muted);font-size:0.8rem">${ct.rubro}</span></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${canPay()?`<button class="btn btn-sm" onclick="ctIdx=${i};editPagoCtPIdx=null;$('ctPagoFecha').value=today();$('pagoCtTitle').textContent='Registrar Pago';$('pagoCtBtn').textContent='Guardar';openModal('modalPagoCt')">💳 Pagar</button>`:''}
+          ${canEdit()?`<button class="btn-edit" onclick="editContratista(${i})">✏️ Editar</button>`:''}
+          ${isAdm()?`<button class="btn-del" onclick="askDel('ctc${i}',()=>delContratista(${i}))">🗑</button><div id="ctc${i}" style="display:inline"></div>`:''}
+        </div>
+      </div>
+      <div class="stats-row" style="margin-bottom:12px">
+        <div class="stat-box"><div class="label">Base</div><div class="value">${fmt(ct.presupuesto,ct.moneda)}</div></div>
+        <div class="stat-box"><div class="label">Adicionales</div><div class="value ${at>=0?'green':'red'}">${fmt(at,ct.moneda)}</div></div>
+        <div class="stat-box"><div class="label">Total</div><div class="value blue">${fmt(total,ct.moneda)}</div></div>
+        <div class="stat-box"><div class="label">Pagado</div><div class="value green">${fmt(pag,ct.moneda)}</div></div>
+        <div class="stat-box"><div class="label">Saldo</div><div class="value ${saldo>0?'red':'green'}">${fmt(saldo,ct.moneda)}</div></div>
+      </div>
+      ${canEdit()?`<div class="entry-row" style="margin-bottom:8px">
+        <span class="entry-label" style="font-size:0.72rem">+ Adicional</span>
+        <input type="text" id="ctAdicDesc${i}" placeholder="Concepto...">
+        <input type="number" id="ctAdicMonto${i}" placeholder="0" style="max-width:100px">
+        <button class="btn btn-sm" style="background:var(--warn);white-space:nowrap" onclick="addAdicCt(${i})">Agregar</button>
+      </div>`:''}
+      ${ct.adicionales.length?`<div class="item-list" style="margin-bottom:8px">`+ct.adicionales.map((a,ai)=>`
+        <div class="item-row" style="position:relative"><span class="item-cell"><span class="tag tag-adic">Adicional</span></span>
+        <span class="item-cell grow">${a.desc} ${who(a.por)}</span>
+        <span class="item-cell num ${a.monto<0?'red':''}">${fmt(a.monto,ct.moneda)}</span>
+        <span class="item-cell actions">${canEdit()?`<button class="btn-edit" onclick="editAdicCt(${i},${ai})">✏️</button>`:''}${isAdm()?`<button class="btn-del" onclick="askDel('ca${i}_${ai}',()=>delAdicCt(${i},${ai}))">🗑</button><div id="ca${i}_${ai}" style="position:absolute;right:0;top:100%;z-index:10"></div>`:''}</span></div>`).join('')+'</div>':''}
+      ${ct.pagos.length?`<div class="item-list">`+ct.pagos.map((p,pi)=>`
+        <div class="item-row" style="position:relative"><span class="item-cell"><span class="tag tag-pago">Pago</span></span>
+        <span class="item-cell muted">${p.fecha}</span><span class="item-cell grow">${p.desc} ${who(p.por)}</span>
+        <span class="item-cell num">${fmt(p.monto,ct.moneda)}</span>
+        <span class="item-cell actions">${canPay()?`<button class="btn-edit" onclick="editPagoCt(${i},${pi})">✏️</button>`:''}${isAdm()?`<button class="btn-del" onclick="askDel('cp${i}_${pi}',()=>delPagoCt(${i},${pi}))">🗑</button><div id="cp${i}_${pi}" style="position:absolute;right:0;top:100%;z-index:10"></div>`:''}</span></div>`).join('')+'</div>':''}
+    </div>`;
+  }).join('');
+  // bind enter for adic entries
+  setTimeout(()=>{o.contratistas.forEach((_,i)=>{
+    [$(`ctAdicDesc${i}`),$(`ctAdicMonto${i}`)].forEach(el=>{if(el)el.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();addAdicCt(i);}};});
+  });},10);
+}
+
+// ── NOTAS ─────────────────────────────────────────────
+function addNota(){
+  const t=$('notaTexto').value.trim();if(!t)return;
+  const o=getObra();if(!o.notas)o.notas=[];
+  o.notas.push({texto:t,usuario:{adm:'Administración',tec:'Técnica',ope:'Operaciones'}[user]||'',por:user,fecha:today(),ts:Date.now()});
+  $('notaTexto').value='';save();renderNotas();renderHome();
+}
+function delNota(i){if(!isAdm())return;getObra().notas.splice(i,1);save();renderNotas();renderHome();}
+function renderNotas(){
+  const o=getObra();if(!o)return;const notas=o.notas||[];
+  $('notasList').innerHTML=notas.length?[...notas].reverse().map((n,ri)=>{const i=notas.length-1-ri;
+    return`<div class="note-item"><div class="note-meta">${who(n.por||'adm')}<strong style="font-size:0.79rem">${n.usuario}</strong><span>· ${n.fecha}</span>
+    ${isAdm()?`<button class="btn-del" onclick="askDel('nt${i}',()=>delNota(${i}))" style="margin-left:auto">🗑</button><div id="nt${i}" style="display:inline"></div>`:''}</div>
+    <div class="note-text">${n.texto.replace(/\n/g,'<br>')}</div></div>`;}).join('')
+    :'<p style="color:var(--muted);text-align:center;padding:16px">Sin notas.</p>';
+}
+
+// INIT
+document.addEventListener('DOMContentLoaded',()=>{
+  $('loginPass').onkeydown=e=>{if(e.key==='Enter')doLogin();};
+  $('newObraDir').onkeydown=e=>{if(e.key==='Enter')crearObra();};
+  $('newObraCliente').onkeydown=e=>{if(e.key==='Enter')$('newObraDir').focus();};
+  $('newObraNombre').onkeydown=e=>{if(e.key==='Enter')$('newObraCliente').focus();};
+});
+</script>
+</body>
+</html>
